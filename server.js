@@ -17,13 +17,14 @@ function resolvePort(rawValue) {
   }
 
   const value = Number(rawValue);
+  const shown = Number.isFinite(value) && !String(value).includes('e') ? value : rawValue;
 
   if (value < MIN_PORT) {
-    throw new Error('Port ' + value + ' is below the minimum: ports 1-1023 are privileged and require elevated access. Set PORT to a value between 1024 and 65535, or unset PORT to use the default 3000.');
+    throw new Error('Port ' + shown + ' is below the minimum: ports 1-1023 are privileged and require elevated access. Set PORT to a value between 1024 and 65535, or unset PORT to use the default 3000.');
   }
 
   if (value > MAX_PORT) {
-    throw new Error('Port ' + value + ' is above the maximum: PORT must be between 1024 and 65535. Unset PORT to use the default 3000.');
+    throw new Error('Port ' + shown + ' is above the maximum: PORT must be between 1024 and 65535. Unset PORT to use the default 3000.');
   }
 
   return value;
@@ -74,6 +75,10 @@ function handleServerError(err) {
 }
 
 function shutdown() {
+  if (!server.listening) {
+    return;
+  }
+
   console.log('Shutting down server on port ' + port);
 
   server.close(() => {
