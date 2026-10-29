@@ -5,6 +5,7 @@ A minimal, dependency-free Node.js HTTP server written for beginners. It demonst
 ## Prerequisites
 
 - **Node.js v18.0.0 or newer.**
+- **`curl`, for the testing examples below** — the Testing and Expected-output sections issue `curl` commands. It ships by default on macOS, Windows 10 and later, and most Linux distributions, and any HTTP client may be used in its place. The server itself needs nothing beyond Node.js.
 
 The version floor lives in two places and the two must agree: `"engines": { "node": ">=18.0.0" }` in `package.json`, and this section. npm treats `engines` as advisory, so treat this section as the promise you can rely on.
 
@@ -218,6 +219,8 @@ README.md      Execution and usage instructions (this file)
 | Method | Path | Status | Body |
 | --- | --- | --- | --- |
 | `GET` | `/hello` | `200` | `Hello world` |
-| Any other method | Any other path (`*` catch-all) | `404` | `Not Found` |
+| Any | Any (`*` catch-all) | `404` | `Not Found` |
+
+Row 2 is the catch-all: it answers every request that row 1 does not match — any method on any path, so `GET /invalid` (a `GET` on an unknown path) and `POST /hello` (another method on `/hello`) both return `404`. A `HEAD` request carries the status and headers of its routing decision but no body bytes, because Node.js suppresses the body of every `HEAD` response: `curl -I http://localhost:3000/hello` therefore shows `404`, `Content-Type: text/plain` and `Content-Length: 9` with no `Not Found`.
 
 Both responses carry `Content-Type: text/plain`. `Hello world` is 11 bytes and `Not Found` is 9 bytes, neither with a trailing newline. Requests are logged before routing, one line each, in the format `<ISO-8601 timestamp> <HTTP method> <request path>`, where the timestamps are UTC.
