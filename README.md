@@ -195,6 +195,8 @@ Shutting down server on port 3000
 
 then stops accepting connections, closes its connections cleanly and exits with status `0`. The port in the line is the port in use, so with `PORT=4000` the line reads `Shutting down server on port 4000`.
 
+The wait is bounded: the server gives in-flight requests up to one second to finish, then closes whatever is still connected and exits with status `0` all the same, so a client that opens a connection and never finishes its request cannot keep the process running. Pressing `CTRL+C` a second time during that second stops the server immediately, without a second shutdown line.
+
 A complete session therefore looks like this:
 
 ```text

@@ -75,7 +75,21 @@ function handleServerError(err) {
 }
 
 function shutdown() {
+  // An unfinished request holds its connection open, so the drain is bounded by a grace period rather than left to the client.
+  const graceMs = 1000;
+
+  // closeAllConnections() arrived in the same release as closeIdleConnections() below (Node.js v18.2.0), so it is guarded the same way.
+  const closeRemainingConnectionsAndExit = () => {
+    if (typeof server.closeAllConnections === 'function') {
+      server.closeAllConnections();
+    }
+
+    process.exit(0);
+  };
+
   if (!server.listening) {
+    // server.close() clears listening before the drain ends, so a further SIGINT during the drain forces the stop.
+    closeRemainingConnectionsAndExit();
     return;
   }
 
@@ -89,6 +103,9 @@ function shutdown() {
   if (typeof server.closeIdleConnections === 'function') {
     server.closeIdleConnections();
   }
+
+  // Whatever is still connected when the grace period ends is closed, so the process always exits within it.
+  setTimeout(closeRemainingConnectionsAndExit, graceMs);
 }
 
 function startServer() {
